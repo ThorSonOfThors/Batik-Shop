@@ -4,7 +4,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import axios from 'axios'
 import App from './App.vue'
-import router from './router'
+import router from './router/index'
 import { useAuthStore } from './stores/auth'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
@@ -45,6 +45,7 @@ axios.interceptors.response.use(
 
 const app = createApp(App)
 
+//initVanta()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)

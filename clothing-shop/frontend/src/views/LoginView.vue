@@ -82,6 +82,7 @@ const handleLogin = async () => {
   justify-content: center;
   padding: 20px;
   position: relative;
+  z-index: 3;
 }
 
 .login-container::before {
@@ -91,7 +92,7 @@ const handleLogin = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('C:\Users\Filip\Desktop\clothing-shop\frontend\src\assets\backgroundImageForLoginView.jpg');
+  background-image: url('../assets/backgroundImageForLoginView.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

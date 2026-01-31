@@ -4,12 +4,16 @@ import type { Item } from '@/types/Item'
 export const useCartStore = defineStore('cart', {
   state: () => ({
     items: [] as Item[],
+    taxRate: 0.08, //8% tax
   }),
 
   getters: {
     totalItems: (state) => state.items.reduce((sum, item) => sum + (item.quantity ?? 1), 0),
     totalPrice: (state) =>
       state.items.reduce((sum, item) => sum + (item.price * (item.quantity ?? 1)), 0),
+    
+    getTax: (state): number => Number.parseFloat(state.taxRate.toString()),
+    
   },
 
   actions: {

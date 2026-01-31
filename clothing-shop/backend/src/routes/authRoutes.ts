@@ -7,8 +7,7 @@ import { createItem  , getAllItems , deleteItem , updateItem} from '../controlle
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { stripeWebhook } from "../controllers/ordersController.ts";
-
+import { deleteOrder, editOrder, getAdminOrders, getOrderByCheckoutId } from '../controllers/ordersController.ts';
 
 
 const router = Router();
@@ -29,9 +28,6 @@ const storage = multer.diskStorage({
 export const upload = multer({ storage });
 
 
-//create order with wbhook
-router.post("/webhook", express.raw({ type: "application/json" }), stripeWebhook);
-
 //login
 router.post('/login', login);
 router.post('/logout', logout,authenticate); 
@@ -42,5 +38,13 @@ router.post('/items', authenticate, upload.array('image', 10), createItem);
 router.put('/items/:id', authenticate, upload.array('image', 10), updateItem);
 router.delete('/items/:id', authenticate, deleteItem);
 router.get('/items' ,getAllItems);
+
+//orders
+router.get('/orders' ,authenticate, getAdminOrders);
+router.patch('/orders/:orderId' ,authenticate, editOrder);
+router.delete('/orders/:id', authenticate, deleteOrder);
+
+router.get('/orders/by-checkout/:checkoutId',getOrderByCheckoutId);
+
 
 export default router;

@@ -1,9 +1,17 @@
 <template>
   <div class="home-container">
+    <!-- VANTA BACKGROUND -->
+    <div id="vanta-home"></div>
+
     <!-- HERO SECTION -->
-    <section class="hero":style="{ backgroundImage: `url(${heroImages[currentHero]})` }"> 
+    <section
+      class="hero"
+      :style="{ backgroundImage: `url(${heroImages[currentHero]})` }"
+    >
       <div class="hero-content">
-        <h1 class="hero-title">Handcrafted Clothing from the Heart of Indonesia</h1>
+        <h1 class="hero-title">
+          Handcrafted Clothing from the Heart of Indonesia
+        </h1>
         <p class="hero-subtitle">
           A small family dream, stitched one piece at a time.
         </p>
@@ -20,24 +28,18 @@
         <h2 class="story-title">Our Story</h2>
 
         <p class="story-text">
-          What started as a simple idea between a brother and sister has grown into a
-          small, passionate clothing brand based in Indonesia. The two of us wanted to
-          create pieces that celebrate comfort, quality, and the artistic spirit of our 
-          local artisans.
+          What started as a simple idea between a brother and sister has grown
+          into a small, passionate clothing brand based in Indonesia.
         </p>
 
         <p class="story-text">
-          Every fabric we choose comes from trusted local suppliers, and every product 
-          is made with care — from the first sketch to the final stitch. We work closely 
-          with small workshops across Java and Bali, ensuring that each piece reflects 
-          the beauty, culture, and craftsmanship of our home.
+          Every fabric we choose comes from trusted local suppliers, and every
+          product is made with care — from the first sketch to the final stitch.
         </p>
 
         <p class="story-text">
-          We’re still a tiny business, but we’re growing with the support of customers 
-          who value authenticity, sustainability, and quality. When you wear our clothes, 
-          you’re not just choosing a style — you’re supporting local creators and a 
-          family’s dream.
+          When you wear our clothes, you’re not just choosing a style — you’re
+          supporting local creators and a family’s dream.
         </p>
 
         <button class="shop-btn secondary" @click="$router.push('/shop')">
@@ -49,47 +51,62 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { initVanta, type VantaInstance } from '@/utils/vanta'
 
-  const heroImages = [
-    new URL('@/assets/homeBackground.jpg', import.meta.url).href,
-    new URL('@/assets/OrangeBackground.jpg', import.meta.url).href,
-    new URL('@/assets/cartBackgroun.jpg', import.meta.url).href,
-    
-  ];
+const heroImages = [
+  new URL('@/assets/homeBackground.jpg', import.meta.url).href,
+  new URL('@/assets/OrangeBackground.jpg', import.meta.url).href,
+  new URL('@/assets/cartBackgroun.jpg', import.meta.url).href,
+]
 
-  const currentHero = ref(0);
-  let intervalId: number;
+const currentHero = ref(0)
+let intervalId: number
 
-  onMounted(() => {
-    intervalId = setInterval(() => {
-      currentHero.value = (currentHero.value + 1) % heroImages.length;
-    }, 6000); // change every 6 seconds
-  });
+let vanta: VantaInstance | null = null
 
-  onBeforeUnmount(() => {
-    clearInterval(intervalId);
-  });
+onMounted(() => {
+  intervalId = window.setInterval(() => {
+    currentHero.value = (currentHero.value + 1) % heroImages.length
+  }, 6000)
 
+  const el = document.getElementById('vanta-home')
+  if (el) {
+    vanta = initVanta(el)
+  }
+})
+
+onBeforeUnmount(() => {
+  clearInterval(intervalId)
+  vanta?.destroy()
+  vanta = null
+})
 </script>
 
 <style scoped>
 .home-container {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   width: 100%;
   min-height: 100vh;
-  background: #f8f8f8;
+  overflow: hidden;
+}
+
+/* VANTA */
+#vanta-home {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
 }
 
 /* HERO */
 .hero {
   width: 100%;
-  
   transition: background-image 2s ease-in-out;
-  
+  background-color: black;
   padding: 120px 20px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-content {
@@ -132,13 +149,15 @@
 .story-section {
   display: flex;
   justify-content: center;
-  background: linear-gradient(135deg, #fdfdfd, #000000);
   padding: 60px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .story-card {
   max-width: 900px;
   background: white;
+  opacity: 0.77;
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);

@@ -47,6 +47,7 @@
             <th>Producer</th>
             <th>Price</th>
             <th>Category</th>
+            <th>Description</th>
             <th>Status</th>
             <th>Created At</th>
             <th>Actions</th>
@@ -73,6 +74,24 @@
             <td>{{ item.producer || '-' }}</td>
             <td>${{ item.price }}</td>
             <td>{{ item.category }}</td>
+            <td class="description-column">
+              <span v-if="item.description" class="description-cell">
+                {{ truncateDescription(item.description) }}
+
+                <button 
+                  v-if="item.description.length > 18" 
+                  @click="openDescriptionModal(item.description)" 
+                  class="view-more-btn"
+                  title="View full description"
+                >
+                  ...
+                </button>
+              </span>
+
+              <span v-else class="no-description">-</span>
+            </td>
+
+
             <td>
               <span :class="['status-badge', getStatusClass(item.status)]">
                 {{ item.status }}
@@ -136,6 +155,21 @@
             <div class="form-group">
               <label>Category *</label>
               <input v-model="newItem.category" required type="text">
+            </div>
+          </div>
+          
+          <!-- ✅ ADDED: Description field -->
+          <div class="form-group">
+            <label>Description</label>
+            <textarea 
+              v-model="newItem.description" 
+              rows="4" 
+              placeholder="Enter item description (max 5000 characters)..."
+              :maxlength="5000"
+              class="description-textarea"
+            ></textarea>
+            <div class="character-counter">
+              {{ newItem.description ? newItem.description.length : 0 }}/5000 characters
             </div>
           </div>
           
@@ -222,6 +256,21 @@
             </div>
           </div>
           
+          <!-- ✅ ADDED: Description field for editing -->
+          <div class="form-group">
+            <label>Description</label>
+            <textarea 
+              v-model="editingItem.description" 
+              rows="4" 
+              placeholder="Enter item description (max 5000 characters)..."
+              :maxlength="5000"
+              class="description-textarea"
+            ></textarea>
+            <div class="character-counter">
+              {{ editingItem.description ? editingItem.description.length : 0 }}/5000 characters
+            </div>
+          </div>
+          
           <div class="form-group">
             <label>Status</label>
             <select v-model="editingItem.status">
@@ -298,11 +347,35 @@
         </div>
       </div>
     </div>
+
+    <!-- ✅ ADDED: Description View Modal -->
+    <!-- DESCRIPTION MODAL -->
+    <div 
+      v-if="descriptionModalVisible" 
+      class="modal-overlay" 
+      @click.self="closeDescriptionModal"
+    >
+      <div class="modal-content">
+        <button class="close-btn" @click="closeDescriptionModal">X</button>
+
+        <h3>Full Description</h3>
+
+        <div class="modal-description-text">
+          {{ selectedDescription }}
+        </div>
+
+        <button class="close-modal-btn" @click="closeDescriptionModal">
+          Close
+        </button>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script>
 import api from "../api/axios";
+import { ref } from "vue";
 
 export default {
   name: 'ItemsManagement',
@@ -316,6 +389,7 @@ export default {
       showAddForm: false,
       showEditForm: false,
       showImageModal: false,
+      showDescriptionModalFlag: false, // ✅ ADDED: Flag for description modal
       isSubmitting: false,
       newItem: {
         name: '',
@@ -324,6 +398,7 @@ export default {
         producer: '',
         price: '',
         category: '',
+        description: '', // ✅ ADDED: Description field
         status: 'available',
         images: []
       },
@@ -335,13 +410,16 @@ export default {
         producer: '',
         price: '',
         category: '',
+        description: '', // ✅ ADDED: Description field
         status: 'available',
         existingImages: [],
         newImages: [],
-        deletedImages: [] 
+        deletedImages: []
       },
       galleryImages: [],
-      currentImageIndex: 0
+      currentImageIndex: 0,
+      descriptionModalVisible: false,
+      selectedDescription: ""
     };
   },
   computed: {
@@ -359,7 +437,8 @@ export default {
         this.items = response.data.map(item => ({
           ...item,
           images: Array.isArray(item.image) ? item.image : JSON.parse(item.image || '[]'),
-          created_at: item.created_at || new Date().toISOString()
+          created_at: item.created_at || new Date().toISOString(),
+          description: item.description || '' // ✅ ADDED: Ensure description is included
         }));
         this.filterItems();
       } catch (error) {
@@ -424,6 +503,25 @@ export default {
       return new Date(dateString).toLocaleDateString();
     },
 
+    // ✅ ADDED: Truncate description for table display
+    truncateDescription(description) {
+      if (!description) return '';
+      if (description.length <= 100) return description;
+      return description.substring(0, 100);
+    },
+
+    // ✅ ADDED: Show full description modal
+    showDescriptionModal(description) {
+      this.currentDescription = description;
+      this.showDescriptionModalFlag = true;
+    },
+
+    // ✅ ADDED: Close description modal
+    closeDescriptionModal() {
+      this.showDescriptionModalFlag = false;
+      this.currentDescription = '';
+    },
+
     handleFileUpload(event) {
       const files = Array.from(event.target.files);
       this.newItem.images = [...this.newItem.images, ...files];
@@ -446,7 +544,7 @@ export default {
       this.editingItem.newImages.splice(index, 1);
     },
 
-    removeExistingImage(index , type = 'existing') {
+    removeExistingImage(index, type = 'existing') {
        if (type === 'existing') {
         const removed = this.editingItem.existingImages.splice(index, 1)[0];
         if (removed) {
@@ -468,6 +566,8 @@ export default {
         formData.append('price', this.newItem.price);
         formData.append('category', this.newItem.category);
         formData.append('status', this.newItem.status);
+        // ✅ ADDED: Append description to form data
+        formData.append('description', this.newItem.description);
 
         // Append all images
         this.newItem.images.forEach(file => {
@@ -501,11 +601,11 @@ export default {
         producer: item.producer || '',
         price: item.price,
         category: item.category,
+        description: item.description || '', // ✅ ADDED: Include description
         status: item.status,
         existingImages: [...item.images],
         newImages: [],
         deletedImages: []
-        
       };
       this.showEditForm = true;
     },
@@ -521,6 +621,8 @@ export default {
         formData.append('price', this.editingItem.price);
         formData.append('category', this.editingItem.category);
         formData.append('status', this.editingItem.status);
+        // ✅ ADDED: Append description to form data
+        formData.append('description', this.editingItem.description);
 
         // Append new images
         this.editingItem.newImages.forEach(file => {
@@ -600,6 +702,7 @@ export default {
         producer: '',
         price: '',
         category: '',
+        description: '', // ✅ ADDED: Reset description field
         status: 'available',
         images: []
       };
@@ -630,33 +733,57 @@ export default {
       if (this.currentImageIndex > 0) {
         this.currentImageIndex--;
       }
+    },
+
+     openDescriptionModal(text) {
+      this.selectedDescription = text;
+      this.descriptionModalVisible = true;
+    },
+
+    closeDescriptionModal() {
+      this.descriptionModalVisible = false;
+    },
+
+    truncateDescription(desc) {
+      if (!desc) return "";
+      return desc.length > 100 ? desc.substring(0, 100) + "..." : desc;
     }
+
   }
 };
 </script>
 
 <style scoped>
 .items-management {
-  padding: 20px;
-  max-width: 1481px;
+  padding-top: 55px;        /* 20 + 55 navbar; adjust if needed */
+  padding-left: 10vh;
+  padding-right: 10vh;
   margin: 0 auto;
-  position: relative;
+  position: relative;      /* keep if you want full-page coverage */
+  z-index: 1;               /* ensures the pseudo-element sits behind */
   min-height: 100vh;
 }
 
+/* Background image layer */
 .items-management::before {
   content: '';
-  position: fixed;  
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('C:\Users\Filip\Desktop\clothing-shop\frontend\src\assets\backgroundImageForAdminView.jpg'); /* Replace with your image path */
-  background-size: cover;
+  position: absolute;       /* CHANGE: was fixed */
+  inset: 0;                 /* top:0 right:0 bottom:0 left:0 */
+  background-image: url('../assets/jungleBackground.jpg');
+  background-size: fit;
+  background-repeat: repeat;
   background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.99; /* Adjust opacity as needed (0.1 = 10% opacity) */
+  opacity: 0.77;
   z-index: -1;
+  pointer-events: none;     /* so it never blocks clicks */
+}
+.items-management::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4); /* Adjust opacity for darkness */
+  z-index: -1; /* Same z-index as background */
+  pointer-events: none;
 }
 
 h1 {
@@ -718,9 +845,9 @@ h1 {
 
 .table-container {
   background: white;
+  overflow-x: auto;   
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow: hidden;
 }
 
 .items-table {
@@ -1053,4 +1180,53 @@ h1 {
     padding: 6px;
   }
 }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  width: 60%;
+  max-width: 700px;
+  border-radius: 8px;
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+
+.view-more-btn {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.close-modal-btn {
+  margin-top: 20px;
+}
+
+
+
+
+
 </style>

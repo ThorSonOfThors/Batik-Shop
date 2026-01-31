@@ -1,6 +1,6 @@
 <template>
   <div class="cart-container">
-    <h1 class="title">Your Shopping Cart</h1>
+    <h1 class="title">Your Shopping Cart:</h1>
 
     <div v-if="cartItems.length === 0" class="empty-cart">
       <div class="empty-cart-icon">
@@ -236,7 +236,7 @@ const setImageIndex = (itemId: number, index: number) => {
 
 const taxAmount = computed(() => {
   // Assuming 8% tax rate
-  return totalPrice.value * 0.08;
+  return totalPrice.value * cartStore.getTax;
 });
 
 const proceedToPayment = () => {
@@ -248,20 +248,22 @@ const proceedToPayment = () => {
 
 <style scoped>
 .cart-container {
+  overflow: visible !important;
   max-width: relative;
   margin: 0 auto;
   padding: 2rem 1rem;
   background: linear-gradient(135deg, #8e9c24, #2f855a);
   min-height: 100vh;
-  background-image: url('C:\Users\Filip\Desktop\clothing-shop\frontend\src\assets\cartBackgroun.jpg');
+  background-image: url('../assets/cartBackgroun.jpg');
 }
 
 .title {
   font-size: 2rem;
   font-weight: 700;
   color: #fbfbfb;
+  padding-left: 1vh;
   margin-bottom: 2rem;
-  text-align: center;
+  text-align: left;
 }
 
 /* Empty Cart Styles */
@@ -300,6 +302,7 @@ const proceedToPayment = () => {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  justify-content: center;
 }
 
 .continue-shopping-btn:hover {
@@ -321,7 +324,7 @@ const proceedToPayment = () => {
 .cart-content {
   display: grid;
   grid-template-columns: 1fr 350px;
-  gap: 2rem;
+  gap: 1rem;
   align-items: start;
 }
 
@@ -620,6 +623,24 @@ const proceedToPayment = () => {
   background-color: #38a169;
 }
 
+@media (max-width: 1000px) {
+  .summary-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  max-width: 260px ;
+  padding: 1.5rem;
+  }
+
+  .cart-list{
+    max-width: 100vh;
+    
+  }
+  
+}
+
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .cart-content {
@@ -637,6 +658,10 @@ const proceedToPayment = () => {
   
   .cart-summary {
     position: static;
+    max-width: fit-content;
+  }
+  .summary-card{
+    max-width: fit-content;
   }
 }
 </style>

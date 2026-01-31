@@ -7,6 +7,7 @@ export interface Item {
   price: number
   category: string
   status?: string
-  images?: string[] // list of image URLs
+  images: string[] // list of image URLs
   quantity: number // for cart management
+  description : string
 }

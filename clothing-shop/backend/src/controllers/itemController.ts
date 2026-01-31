@@ -7,9 +7,11 @@ import fs from 'fs';
 export const createItem = async (req: Request, res: Response) => {
   console.log("createItem Handshake!");
   try {
-    const { name, size, material, producer, price, category, status } = req.body;
+    // ✅ Extract all fields from request body including description
+    const { name, size, material, producer, price, category, status, description } = req.body;
     const imageFiles = req.files as Express.Multer.File[]; // now supports multiple files
 
+    // ✅ Validate required fields - description is optional so not included here
     if (!name || !size || !price || !category)
       return res.status(400).json({ message: 'Missing required fields' });
 
@@ -18,9 +20,10 @@ export const createItem = async (req: Request, res: Response) => {
       ? imageFiles.map(file => `/uploads/${path.basename(file.path)}`)
       : [];
 
+    // ✅ Update query to include description field (as optional parameter)
     const query = `
-      INSERT INTO items (name, size, material, producer, price, category, status, image)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)
+      INSERT INTO items (name, size, material, producer, price, category, status, image, description)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
       RETURNING *;
     `;
 
@@ -32,7 +35,8 @@ export const createItem = async (req: Request, res: Response) => {
       price,
       category,
       status || 'available',
-      JSON.stringify(imagePaths)
+      JSON.stringify(imagePaths),
+      description || null  // ✅ Store description, default to null if not provided
     ];
 
     const result = await pool.query(query, values);
@@ -50,7 +54,7 @@ export const createItem = async (req: Request, res: Response) => {
 
 export const getAllItems = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await pool.query("SELECT * FROM items ORDER BY id ASC");
+    const result = await pool.query("SELECT * FROM items ORDER BY created_at ASC");
     res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error fetching items:", error);
@@ -64,7 +68,9 @@ export const getAllItems = async (req: Request, res: Response): Promise<void> =>
 export const updateItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, size, material, producer, price, category, status , deletedImages } = req.body;
+    
+    // ✅ Extract description from request body along with other fields
+    const { name, size, material, producer, price, category, status, deletedImages, description } = req.body;
     const imageFiles = req.files as Express.Multer.File[];
 
     // Check if item exists
@@ -98,14 +104,13 @@ export const updateItem = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-
-
+    // ✅ Add new images to the array
     if (imageFiles && imageFiles.length > 0) {
       const newImagePaths = imageFiles.map(file => `/uploads/${path.basename(file.path)}`);
       imageArray = [...imageArray, ...newImagePaths];
     }
 
-    // Dynamically update only provided fields
+    // ✅ Dynamically update only provided fields - including description
     const fields: string[] = [];
     const values: any[] = [];
     let idx = 1;
@@ -118,6 +123,13 @@ export const updateItem = async (req: Request, res: Response): Promise<void> => 
     if (category) { fields.push(`category = $${idx++}`); values.push(category); }
     if (status) { fields.push(`status = $${idx++}`); values.push(status); }
     
+    // ✅ Handle description update (can be empty string to clear description)
+    if (description !== undefined) {
+      fields.push(`description = $${idx++}`);
+      values.push(description || null); // Store null if empty string
+    }
+    
+    // ✅ Always update image array
     fields.push(`image = $${idx++}::jsonb`); 
     values.push(JSON.stringify(imageArray)); 
     
