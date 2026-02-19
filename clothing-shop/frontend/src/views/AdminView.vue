@@ -496,8 +496,9 @@ export default {
     },
 
     getFullImagePath(relativePath) {
-      return `http://localhost:5000${relativePath}`;
+      return `${import.meta.env.VITE_API_URL}${relativePath}`;
     },
+
 
     formatDate(dateString) {
       return new Date(dateString).toLocaleDateString();
@@ -756,8 +757,8 @@ export default {
 <style scoped>
 .items-management {
   padding-top: 55px;        /* 20 + 55 navbar; adjust if needed */
-  padding-left: 10vh;
-  padding-right: 10vh;
+  padding-left: 5vh;
+  padding-right: 5vh;
   margin: 0 auto;
   position: relative;      /* keep if you want full-page coverage */
   z-index: 1;               /* ensures the pseudo-element sits behind */

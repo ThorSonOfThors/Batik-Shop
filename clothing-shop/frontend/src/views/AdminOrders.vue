@@ -93,7 +93,7 @@
             <td class="address-cell">
               <div v-if="order.address">
                 <div class="address-street">{{ order.address.street }}</div>
-                <div class="address-city">{{ order.address.city }}{{ order.address.zipCode ? `, ${order.address.zipCode}` : '' }}</div>
+                <div class="address-city">{{ order.address.city }}{{ order.address.zip ? `, ${order.address.zip}` : '' }}</div>
                 <div v-if="order.address.state" class="address-state">{{ order.address.state }}</div>
                 <div v-if="order.address.phone" class="address-phone">📞 {{ order.address.phone }}</div>
               </div>
@@ -247,7 +247,7 @@
               </div>
               <div class="form-group">
                 <label>ZIP Code</label>
-                <input :value="selectedOrder.address.zipCode || 'Not provided'" readonly />
+                <input :value="selectedOrder.address.zip || 'Not provided'" readonly />
               </div>
             </div>
             <div class="form-row">
@@ -421,7 +421,7 @@
               </div>
               <div class="form-group">
                 <label>ZIP Code</label>
-                <input v-model="editForm.address.zipCode" />
+                <input v-model="editForm.address.zip" />
               </div>
             </div>
             <div class="form-row">
@@ -522,7 +522,7 @@ import api from '@/api/axios'
 interface Address {
   street: string
   city: string
-  zipCode: string
+  zip: string
   state?: string
   phone?: string
 }
@@ -579,7 +579,7 @@ const editForm = ref({
   address: {
     street: '',
     city: '',
-    zipCode: '',
+    zip: '',
     state: '',
     phone: ''
   }
@@ -630,7 +630,7 @@ const filteredOrders = computed(() => {
       (order.address && (
         order.address.street.toLowerCase().includes(query) ||
         order.address.city.toLowerCase().includes(query) ||
-        (order.address.zipCode && order.address.zipCode.toLowerCase().includes(query))
+        (order.address.zip && order.address.zip.toLowerCase().includes(query))
       ))
     )
   }
@@ -728,13 +728,13 @@ const openEditModal = (order: Order) => {
     address: order.address ? {
       street: order.address.street || '',
       city: order.address.city || '',
-      zipCode: order.address.zipCode || '',
+      zip: order.address.zip || '',
       state: order.address.state || '',
       phone: order.address.phone || ''
     } : {
       street: '',
       city: '',
-      zipCode: '',
+      zip: '',
       state: '',
       phone: ''
     }
@@ -764,7 +764,7 @@ const saveOrder = async () => {
       updateData.address = {
         street: editForm.value.address.street,
         city: editForm.value.address.city,
-        zip: editForm.value.address.zipCode,
+        zip: editForm.value.address.zip,
         state: editForm.value.address.state
       }
     }
@@ -936,7 +936,7 @@ const printOrder = () => {
               <span class="info-label">City:</span> ${order.address.city}
             </div>
             <div class="info-item">
-              <span class="info-label">ZIP:</span> ${order.address.zipCode || 'N/A'}
+              <span class="info-label">ZIP:</span> ${order.address.zip || 'N/A'}
             </div>
             ${order.address.state ? `<div class="info-item"><span class="info-label">State:</span> ${order.address.state}</div>` : ''}
             ${order.address.phone ? `<div class="info-item"><span class="info-label">Phone:</span> ${order.address.phone}</div>` : ''}
@@ -1085,8 +1085,8 @@ onMounted(() => {
 
 .items-management {
   padding-top: 55px;        /* 20 + 55 navbar; adjust if needed */
-  padding-left: 10vh;
-  padding-right: 10vh;
+  padding-left: 5vh;
+  padding-right: 5vh;
   margin: 0 auto;
   position: relative;      /* keep if you want full-page coverage */
   z-index: 0;               /* ensures the pseudo-element sits behind */

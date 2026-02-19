@@ -174,7 +174,7 @@ import { useCartStore } from "@/stores/cart";
 const router = useRouter();
 const cartStore = useCartStore();
 
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const cartItems = computed(() => cartStore.items);
 const totalPrice = computed(() => cartStore.totalPrice);

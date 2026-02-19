@@ -494,7 +494,7 @@ const pay = async () => {
   loading.value = true
 
   try {
-    const res = await fetch('http://localhost:5000/api/payments/create-intent', {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/create-intent`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
